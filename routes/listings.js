@@ -11,6 +11,7 @@ const imageResize = require("../middleware/imageResize");
 const delay = require("../middleware/delay");
 const listingMapper = require("../mappers/listings");
 const config = require("config");
+const Listing = require("../models/listing");
 
 const upload = multer({
   dest: "uploads/",
@@ -35,10 +36,19 @@ const validateCategoryId = (req, res, next) => {
   next();
 };
 
-router.get("/", (req, res) => {
+router.get("/", async (req, res) => {
+  const listingsdb = await Listing.find();
   const listings = store.getListings();
-  const resources = listings.map(listingMapper);
-  res.send(resources);
+  let resources = listings.map(listingMapper);
+  // console.log(listingsdb[0]);
+  console.log("----------------------------------------------------------");
+
+  if (listingsdb.length > 0) {
+    let resourcesdb = listingsdb.map(listingMapper);
+    // console.log(resourcesdb[0]);
+    resources = [...resources, ...resourcesdb];
+    res.send(resources);
+  }
 });
 
 router.post(
@@ -53,7 +63,6 @@ router.post(
     // using a separate process.
     // auth,
     upload.array("images", config.get("maxImageCount")),
-    validateWith(schema),
     validateCategoryId,
     imageResize,
   ],
@@ -61,15 +70,19 @@ router.post(
   async (req, res) => {
     const listing = {
       title: req.body.title,
-      price: parseFloat(req.body.price),
-      categoryId: parseInt(req.body.categoryId),
+      price: req.body.price,
+      categoryId: req.body.categoryId,
       description: req.body.description,
     };
     listing.images = req.images.map((fileName) => ({ fileName: fileName }));
-    if (req.body.location) listing.location = JSON.parse(req.body.location);
-    if (req.user) listing.userId = req.user.userId;
-
+    // if (req.body.location) listing.location = JSON.parse(req.body.location);
+    // if (req.user) listing.userId = req.user.userId;
+    console.log(listing);
     store.addListing(listing);
+
+    const listingdb = new Listing(listing);
+    await listingdb.save();
+    const filePath = `${req.protocol}://${req.hostname}:9001/assets/${req.images[0]}_full.jpg`;
 
     res.status(201).send(listing);
   }
