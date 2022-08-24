@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+const mongoose = require("mongoose");
 
 // Defining Schema
 const projectSchema = new mongoose.Schema({
@@ -7,6 +7,7 @@ const projectSchema = new mongoose.Schema({
   description: { type: String },
   team: [
     {
+      _id: false,
       name: { type: String },
       photo: { type: String },
     },
@@ -18,6 +19,6 @@ const projectSchema = new mongoose.Schema({
 });
 
 // Model
-const ProjectModel = mongoose.model("project", projectSchema);
+const Project = mongoose.model("project", projectSchema);
 
-export default ProjectModel;
+module.exports = Project;

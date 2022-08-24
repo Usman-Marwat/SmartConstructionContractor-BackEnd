@@ -17,6 +17,7 @@ const listingSchema = new Schema(
     },
     images: [
       {
+        _id: false,
         fileName: { type: String },
       },
     ],

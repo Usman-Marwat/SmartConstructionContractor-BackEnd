@@ -37,7 +37,7 @@ const validateCategoryId = (req, res, next) => {
 };
 
 router.get("/", async (req, res) => {
-  const listingsdb = await Listing.find();
+  const listingsdb = await Listing.find().sort({ createdAt: -1 });
   const listings = store.getListings();
   let resources = listings.map(listingMapper);
   // console.log(listingsdb[0]);
@@ -46,9 +46,11 @@ router.get("/", async (req, res) => {
   if (listingsdb.length > 0) {
     let resourcesdb = listingsdb.map(listingMapper);
     // console.log(resourcesdb[0]);
-    resources = [...resources, ...resourcesdb];
-    res.send(resources);
+    resourcesdb = resourcesdb.filter((resource) => resource["$__"] !== null);
+    resources = [...resourcesdb, ...resources];
   }
+  console.log(resources);
+  res.send(resources);
 });
 
 router.post(

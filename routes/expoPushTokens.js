@@ -5,12 +5,14 @@ const Joi = require("joi");
 const usersStore = require("../store/users");
 const auth = require("../middleware/auth");
 const validateWith = require("../middleware/validation");
+const User = require("../models/user");
 
 router.post(
   "/",
   [auth, validateWith({ token: Joi.string().required() })],
-  (req, res) => {
-    const user = usersStore.getUserById(req.user.userId);
+  async (req, res) => {
+    // const user = usersStore.getUserById(req.user.userId);
+    const user = await User.find({ email: req.user.email });
     if (!user) return res.status(400).send({ error: "Invalid user." });
 
     user.expoPushToken = req.body.token;
